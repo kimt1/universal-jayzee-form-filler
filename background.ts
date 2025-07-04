@@ -1,7 +1,7 @@
 const STORAGE_KEY = 'omniForm_state';
 const ALARM_PREFIX = 'job_';
 
-const runtime = chrome ?? (globalThis as any).browser;
+const runtime = chrome ?? (globalThis as { browser?: typeof chrome }).browser;
 
 /* -------------  TYPES ------------- */
 
@@ -75,21 +75,34 @@ async function handleInstalled(
 
 /* -------------  MESSAGE HANDLER ------------- */
 
+interface BackgroundMessage {
+  type: 'SCHEDULE_JOB' | 'CANCEL_JOB' | 'GET_STATE' | 'RESET_STATE';
+  payload?: JobConfig | { id: string };
+}
+
 function handleMessage(
-  message: any,
+  message: BackgroundMessage,
   _sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: any) => void
+  sendResponse: (response?: { ok: boolean; state?: ExtensionState, error?: string }) => void
 ): boolean | void {
   (async () => {
     switch (message?.type) {
       case 'SCHEDULE_JOB': {
-        await scheduleJob(message.payload as JobConfig);
-        sendResponse({ ok: true });
+        if (message.payload && 'id' in message.payload) { // Type guard
+          await scheduleJob(message.payload as JobConfig);
+          sendResponse({ ok: true });
+        } else {
+          sendResponse({ ok: false, error: 'Invalid payload for SCHEDULE_JOB' });
+        }
         break;
       }
       case 'CANCEL_JOB': {
-        await cancelJob(message.payload?.id as string);
-        sendResponse({ ok: true });
+        if (message.payload && 'id' in message.payload) { // Type guard
+          await cancelJob(message.payload.id as string);
+          sendResponse({ ok: true });
+        } else {
+          sendResponse({ ok: false, error: 'Invalid payload for CANCEL_JOB' });
+        }
         break;
       }
       case 'GET_STATE': {
@@ -105,7 +118,7 @@ function handleMessage(
       default:
         sendResponse({ ok: false, error: 'Unknown message' });
     }
-  })().catch((err) => {
+  })().catch((err: Error) => {
     console.error(err);
     sendResponse({ ok: false, error: err?.message ?? String(err) });
   });

@@ -185,11 +185,11 @@ export class FormFiller {
 
         // Traverse nested shadowRoots
         root.querySelectorAll<HTMLElement>('*').forEach((node) => {
-          // @ts-ignore
+          // @ts-expect-error shadowRoot is not always present
           if (node.shadowRoot) {
             const hostSelector = this._getUniqueSelector(node);
             const nextPath = currentPath.concat(hostSelector);
-            visitRoot((node as HTMLElement).shadowRoot, nextPath);
+            visitRoot((node as HTMLElement).shadowRoot!, nextPath);
           }
         });
       } catch {
@@ -234,7 +234,7 @@ export class FormFiller {
       } else {
         // ShadowRoot navigation via CSS selector
         const host = ctx?.querySelector(hop as string) as HTMLElement;
-        // @ts-ignore
+        // @ts-expect-error shadowRoot is not always present
         ctx = host?.shadowRoot ?? null;
       }
     }
@@ -324,7 +324,7 @@ export class FormFiller {
  * GLOBAL SHIM (optional) ? expose to window for debugging.
  *********************************************************/
 try {
-  // @ts-ignore
+  // @ts-expect-error FormFiller may not be assignable to window
   if (typeof window !== 'undefined') window.FormFiller = FormFiller;
 } catch {
   /* ignore */

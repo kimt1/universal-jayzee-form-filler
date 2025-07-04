@@ -1,3 +1,14 @@
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Config = Record<string, any>;
+type Primitive = string | number | boolean | null | undefined;
+type WatchCallback = (config: Config) => void;
+
+// Assuming EventEmitter and fs are properly imported elsewhere, e.g.:
+import EventEmitter from 'events';
+import fs from 'fs';
+import path from 'path';
+import yaml from 'js-yaml';
+
 const state: {
   config: Config;
   emitter: EventEmitter;
@@ -22,7 +33,7 @@ function stripJsonComments(data: string): string {
 function deepMerge<T extends Config, U extends Config>(
   target: T,
   source: U,
-  seen: WeakMap<object, any> = new WeakMap()
+  seen: WeakMap<object, Config> = new WeakMap()
 ): T & U {
   // Primitive or functions ? just override
   if (
@@ -69,8 +80,8 @@ function deepMerge<T extends Config, U extends Config>(
 /**
  * Safely access nested values via dot-notation.
  */
-function getNested(obj: Config, keyPath: string): any {
-  return keyPath.split('.').reduce((acc, part) => (acc ? acc[part] : undefined), obj);
+function getNested(obj: Config, keyPath: string): Primitive | Config | undefined {
+  return keyPath.split('.').reduce((acc: Config | Primitive | undefined, part: string) => (acc && typeof acc === 'object' ? (acc as Config)[part] : undefined), obj);
 }
 
 /**

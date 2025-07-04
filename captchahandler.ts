@@ -243,7 +243,7 @@ class CaptchaHandler {
     return new Promise((res) => setTimeout(res, ms));
   }
 
-  private static buildFormPayload(data: Record<string, any>): RequestInit {
+  private static buildFormPayload(data: Record<string, string | number | boolean>): RequestInit {
     const body = Object.entries(data)
       .map(
         ([k, v]) =>

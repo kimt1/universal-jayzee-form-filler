@@ -4,14 +4,13 @@ const DEFAULT_OPTIONS: Required<ScanOptions> = {
   iframeTraversal: true,
 };
 
-let cachedFields: FieldInfo[] | null = null;
 let observer: MutationObserver | null = null;
 
 /* ---------- Utility --------------------------------------------------------------------- */
 const runtime = ((): chrome.runtime | undefined => {
   // Firefox uses browser, others chrome
   if (typeof chrome !== 'undefined' && chrome.runtime) return chrome.runtime;
-  // @ts-ignore
+  // @ts-expect-error Firefox uses browser global
   if (typeof browser !== 'undefined' && browser.runtime) return browser.runtime;
   return undefined;
 })();
@@ -86,7 +85,7 @@ function extractLabelText(el: Element): string | undefined {
     }
   }
   // fallback: previous sibling label
-  let prev = el.previousElementSibling;
+  const prev = el.previousElementSibling;
   if (prev && prev.tagName.toLowerCase() === 'label')
     return (prev.textContent || '').trim();
   return undefined;

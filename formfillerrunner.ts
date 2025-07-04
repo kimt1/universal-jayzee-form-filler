@@ -121,8 +121,9 @@ export class FormFillerRunner extends EventEmitter {
             await el.fill(String(value ?? ''), { timeout: 5000 });
           }
         }
-      } catch (err: any) {
-        errors.push(`Field "${key}" -> ${err.message ?? String(err)}`);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        errors.push(`Field "${key}" -> ${errorMessage}`);
       }
     }
 

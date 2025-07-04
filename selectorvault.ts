@@ -1,4 +1,40 @@
-const existing = this.storage.getItem(SelectorVault.STORAGE_KEY);
+// Custom error for invalid ciphertext
+class InvalidCiphertextError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'InvalidCiphertextError';
+  }
+}
+
+class SelectorVault {
+  private static readonly STORAGE_KEY = 'selectorVaultData';
+  private static readonly SALT_LENGTH = 16; // bytes
+  private static readonly IV_LENGTH = 12; // bytes
+  private static readonly DEFAULT_PBKDF2_ITERATIONS = 100000;
+
+  private masterKey: string | null = null;
+  private iterations: number = SelectorVault.DEFAULT_PBKDF2_ITERATIONS;
+
+  constructor(private storage: Storage = localStorage) {}
+
+  /**
+   * Initialize the vault with a master key.  If a vault already exists in
+   * storage, this will attempt to decrypt it with the given key.
+   *
+   * @param masterKey The master encryption key.
+   * @param iterations Optional PBKDF2 iteration count (advanced).
+   * @throws Error if the key is invalid for an existing vault.
+   */
+  async initVault(masterKey: string, iterations?: number): Promise<void> {
+    if (!masterKey) throw new Error('Master key cannot be empty');
+    this.masterKey = masterKey;
+    if (iterations) {
+      if (iterations < 1000) throw new Error('Iterations too low');
+      this.iterations = iterations;
+    }
+
+    // Check if vault exists and try to decrypt with new key
+    const existing = this.storage.getItem(SelectorVault.STORAGE_KEY);
     if (existing) {
       try {
         await this.decrypt(existing); // throws if wrong key

@@ -205,8 +205,10 @@ function buildUniqueSelector(el: Element, root: RootLike): string {
 
 /* Polyfill for CSS.escape (spec-compliant) */
 function cssEscape(value: string): string {
-  if (typeof (window as any).CSS?.escape === 'function') {
-    return (window as any).CSS.escape(value);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const globalCss = (window as any).CSS;
+  if (typeof globalCss?.escape === 'function') {
+    return globalCss.escape(value);
   }
 
   const string = String(value);

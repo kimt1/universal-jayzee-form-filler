@@ -180,7 +180,9 @@ export default class BrowserPool {
       if (idx !== -1) {
         this.idle.splice(idx, 1);
       }
-      const hadError = (browser as any)._process?.exitCode !== 0;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const process = (browser as any)._process as { exitCode?: number } | undefined;
+      const hadError = process?.exitCode !== 0;
       this.opts.onBrowserClosed?.(browser, hadError);
 
       // If a waiter exists, try to replace closed browser with a new one.
